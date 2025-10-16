@@ -3,567 +3,490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte Ejecutivo | Avances en Atención al Público</title>
-    <!-- Tailwind CSS para un diseño moderno y responsivo -->
+    <title>Proceso de Observación Quejas - Afore Coppel</title>
+    <!-- Carga de Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts para una tipografía limpia -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Configuración de color para un look corporativo (Azul/Gris) -->
     <style>
-        /* Estilo personalizado para la fuente y el carrusel */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9; /* un gris ligeramente más azulado */
+            background-color: #f7f7f7;
         }
-        /* Estilos para el contenedor del carrusel para ocultar la barra de scroll */
-        .carousel-container {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+        .card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
         }
-        .carousel-container::-webkit-scrollbar {
-            display: none; /* Chrome, Safari and Opera */
+        .text-coppel-blue {
+            color: #1f3a93; /* Un azul corporativo */
         }
-        /* Estilos para las ventanas modales */
-        .modal, .fullscreen-viewer {
-            transition: opacity 0.3s ease;
+        .bg-coppel-blue {
+            background-color: #1f3a93;
         }
-        .modal-content {
-            transition: transform 0.3s ease;
+        /* Custom styles for chart bars (using data to define width in JS) */
+        .bar-container {
+            min-height: 4rem; /* Mínimo 4rem para acomodar 2 o 3 líneas de texto */
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
         }
-        /* Añadir cursor de zoom a la imagen del modal */
-        #modal-image {
-            cursor: zoom-in;
-            transition: opacity 0.3s ease-in-out;
+        .bar-label {
+            /* AJUSTE CLAVE: Se aumenta el ancho y se permite el salto de línea */
+            width: 45%; 
+            font-size: 0.875rem;
+            color: #4b5563;
+            font-weight: 500;
+            padding-right: 1rem; /* Espacio extra entre label y barra */
         }
-        /* Estilos para el visor de imagen a pantalla completa */
-        #fullscreen-image {
-            transition: transform 0.2s ease-out; /* Transición suave para el zoom */
+        .bar-wrapper {
+            display: flex;
+            align-items: center;
+            height: 100%;
         }
-        .draggable {
-            cursor: grab;
+        .bar {
+            background-color: #3b82f6; /* Azul brillante para los datos */
+            min-height: 2.5rem; /* Asegura que la barra sea lo suficientemente alta */
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
         }
-        .dragging {
-            cursor: grabbing;
+        /* Estilo para el texto dentro de la barra (blanco y más legible) */
+        .bar-text {
+            color: white;
+            /* AJUSTE CLAVE: Tamaño de fuente reducido a 0.6rem para asegurar visibilidad en barras cortas */
+            font-size: 0.6rem; 
+            font-weight: 700;
+            white-space: nowrap; /* Mantiene el texto de la data en una sola línea */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
-        /* Oculta el cursor del sistema cuando está sobre el visor */
-        .fullscreen-viewer {
-            cursor: none;
+        /* Estilo para la tabla más espaciada */
+        .styled-table th, .styled-table td {
+            padding: 1rem 0.75rem; /* Más padding vertical y horizontal */
         }
-        #custom-cursor {
-            transition: border-color 0.2s ease;
+
+        /* --- ESTILOS DE MAPA --- */
+        .map-container {
+            width: 100%;
+            height: 300px; /* Altura fija para el mapa */
+            background-color: #f7f7f7; /* Fondo neutro */
+            border-radius: 0.5rem;
+            position: relative;
+            overflow: hidden;
+            /* CAMBIO CLAVE: Contenedor para la etiqueta IMG */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+        }
+        /* Se eliminaron los estilos de .map-marker y .marker-tooltip ya que se usa IMG */
+        
+        /* Estilos para el Gráfico de Pastel (Pie Chart Simulation) */
+        .pie-chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            position: relative;
+            /* Gradiente actualizado para orden 1, 2, 3 (43.2%, 13.6%, 43.2%) */
+            background: conic-gradient(
+                #1f3a93 0% 43.2%, 
+                #3b82f6 43.2% 56.8%, 
+                #63b3ed 56.8% 100%
+            );
+            border-radius: 50%;
+            margin-top: 2rem;
+        }
+        .pie-legend {
+            list-style: none;
+            padding: 0;
+            margin-top: 1rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .legend-color {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+        }
+
+        /* Estilos para la tabla de Hallazgos y Propuestas */
+        .hallazgos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+            border: 1px solid #e5e7eb; /* Borde exterior */
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .hallazgo-header {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            color: #1f3a93;
+            text-align: center;
+        }
+        .hallazgo-content {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            /* CLAVE: Centrado Vertical */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .hallazgo-content p {
+            max-width: 90%; /* Limita el ancho del texto para centrarlo mejor */
+        }
+        .propuesta-content {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            border-left: 1px solid #e5e7eb;
+            /* CAMBIO: Eliminando colores para formato de tabla simple */
+            background-color: #fff; 
+            color: #4b5563; 
+            font-weight: 500;
+            text-align: left; /* Asegura que el texto de la propuesta se lea de forma natural */
+        }
+        .propuesta-content strong {
+            color: #1f3a93; /* Azul para resaltar acciones */
+            font-weight: 700;
+        }
+        /* Estilo para los listados de tiendas */
+        .tiendas-list {
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed #d1d5db;
         }
     </style>
 </head>
-<body class="text-gray-800">
+<body class="p-4 sm:p-8">
 
-    <img src="logo afore coppel.png" alt="Logo Afore Coppel" class="absolute top-8 left-8 h-10 z-20">
+    <header class="mb-8 border-b-4 border-coppel-blue pb-4">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-coppel-blue">Proceso de Observación Quejas</h1>
+        <p class="text-lg text-gray-600 mt-1">Septiembre 2025 | 44 Quejas</p>
+    </header>
 
-    <div class="container mx-auto max-w-6xl py-12 px-4 sm:px-6 lg:px-8">
-        <header class="text-center mb-10 pt-12">
-            <h1 class="text-3xl md:text-4xl font-bold text-[#004e91] flex items-center justify-center">
-                Avances y Mejoras <span class="ml-3 text-3xl">🏆</span>
-            </h1>
-            <div class="flex justify-center items-center mt-4 space-x-3">
-                <span class="text-lg text-gray-600">Implementadas por</span>
-                <img src="logo gap.png" alt="Logo Gerencia de Atención al Público" class="h-28">
+    <!-- Resumen Ejecutivo y Focos de Acción -->
+    <section class="mb-10">
+        <!-- Título de la sección principal -->
+        <h2 class="text-2xl font-bold mb-4 text-gray-800 border-l-4 border-red-500 pl-3">Resumen General</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- Foco 1: Cultura de Servicio -->
+            <div class="card p-5 bg-white rounded-lg border-t-4 border-red-600 text-center">
+                <p class="text-sm font-semibold text-red-600">FOCO CRÍTICO DE CX</p>
+                <h3 class="text-xl font-bold mt-1 text-gray-900">Mala Actitud en la Atención</h3>
+                <p class="text-3xl font-extrabold text-red-600 mt-2">36.4%</p>
+                <p class="text-sm text-gray-500 mt-1">De todas las quejas están relacionadas con la percepción de una <strong>mala actitud</strong> del personal.</p>
             </div>
-        </header>
 
-        <!-- Contenedor del Carrusel con botones de navegación -->
-        <div class="relative">
-            <main id="carousel-container" class="carousel-container flex overflow-x-auto space-x-6 py-4 px-2 scroll-smooth">
-                <!-- Las tarjetas de avances se generarán dinámicamente aquí -->
-            </main>
+            <!-- Foco 2: Rigidez Operativa -->
+            <div class="card p-5 bg-white rounded-lg border-t-4 border-yellow-600 text-center">
+                <p class="text-sm font-semibold text-yellow-600">FOCO OPERATIVO</p>
+                <h3 class="text-xl font-bold mt-1 text-gray-900">Restricciones de Acceso</h3>
+                <p class="text-3xl font-extrabold text-yellow-600 mt-2">27.2%</p>
+                <!-- NEGRITAS APLICADAS AQUÍ -->
+                <p class="text-sm text-gray-500 mt-1">Quejas por <strong>horarios limitados</strong> y <strong>condicionamiento de citas</strong> <strong>(13.6% cada una)</strong>.</p>
+            </div>
 
-            <!-- Botón de scroll Izquierda -->
-            <button id="scroll-left-btn" class="absolute top-1/2 -left-4 md:-left-6 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition z-10">
-                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-            </button>
+            <!-- Foco 3: Impacto Regional -->
+            <div class="card p-5 bg-white rounded-lg border-t-4 border-green-600 text-center">
+                <p class="text-sm font-semibold text-green-600">FOCO GEOGRÁFICO</p>
+                <h3 class="text-xl font-bold mt-1 text-gray-900">Región Mexicali y Coordinador</h3>
+                <p class="text-3xl font-extrabold text-green-600 mt-2">7/44</p>
+                <!-- NEGRITAS APLICADAS AQUÍ -->
+                <p class="text-sm text-gray-500 mt-1"><strong>Mexicali</strong> es la región con más quejas (7). El volumen se reparte entre <strong>dos coordinadores</strong>: <strong>José Luis Feria Flores</strong> <strong>(4 casos)</strong> y <strong>Nadia Elena González Lopez</strong> <strong>(3 casos)</strong>.</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Gráficos de Tipificación por Motivo y Servicio -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+
+        <!-- GRÁFICO 1: Top 5 Motivos de Queja (Tipificación General) -->
+        <div class="card p-6 bg-white rounded-lg">
+            <!-- Título centrado -->
+            <h3 class="text-xl font-semibold mb-4 text-text-coppel-blue text-center">Top 5: Motivos de Queja</h3>
+            <div id="chart-motivos" class="space-y-2">
+                <!-- Barras generadas por JS -->
+            </div>
+        </div>
+
+        <!-- GRÁFICO 2: Tipificación por Servicio (Impacto Operativo) -->
+        <div class="card p-6 bg-white rounded-lg">
+            <h3 class="text-xl font-semibold mb-4 text-text-coppel-blue">Impacto de la Mala Actitud por Tipo de Servicio</h3>
+            <p class="text-sm text-gray-500 mb-4">Quejas relacionadas con "Mala Actitud" y "Condicionamiento de Cita" en los <strong>5 servicios principales</strong>:</p>
+            <table class="min-w-full divide-y divide-gray-300 styled-table">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider rounded-tl-lg">Servicio</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Mala Actitud</th>
+                        <th class="px-3 py-2 text-center text-xs font-medium text-gray-700 uppercase tracking-wider rounded-tr-lg">Condición Cita</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 text-sm" id="table-servicio">
+                    <!-- Filas generadas por JS -->
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+    <!-- NUEVA SECCIÓN: Análisis de Concentración por Ciudad y División -->
+    <section class="mb-10">
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
-            <!-- Botón de scroll Derecha -->
-            <button id="scroll-right-btn" class="absolute top-1/2 -right-4 md:-right-6 transform -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition z-10">
-                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-            </button>
-        </div>
-        
-        <footer class="text-center mt-12 text-gray-500">
-            <p>Reporte realizado por la Gerencia de Atención al Público - Afore Coppel</p>
-        </footer>
-    </div>
-
-    <!-- Estructura de la Ventana Modal (inicialmente oculta) -->
-    <div id="modal" class="modal fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 opacity-0 pointer-events-none">
-        <div id="modal-content" class="modal-content bg-white rounded-xl shadow-2xl w-full max-w-2xl transform scale-95">
-            <div class="p-6 md:p-8">
-                <div class="flex justify-between items-start mb-4">
-                    <h2 id="modal-title" class="text-2xl font-bold text-[#004e91]"></h2>
-                    <button id="close-modal-btn" class="text-gray-500 hover:text-gray-800 transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
+            <!-- GRÁFICO 3: Mapa de Burbujas de Quejas por Ciudad -->
+            <div class="card p-6 bg-white rounded-lg">
+                <!-- TÍTULO CORREGIDO Y CENTRADO -->
+                <h3 class="text-xl font-semibold mb-4 text-text-coppel-blue text-center">Quejas por Ciudad</h3>
+                <!-- SUBTÍTULO CORREGIDO -->
+                <p class="text-sm text-gray-500 mb-4 text-center">Concentración de quejas por ciudad y estado.</p>
+                <div id="map-friccion" class="map-container">
+                    <!-- 
+                      **AQUÍ ESTÁ EL CAMBIO CLAVE**
+                      1. Nombra tu imagen de forma sencilla (ej. 'mapa-quejas-mexico.jpg').
+                      2. Asegúrate de que el archivo de imagen esté en la misma carpeta que este archivo HTML.
+                      3. Actualiza el atributo 'src' para que coincida con el nombre de tu archivo.
+                    -->
+                    <img src="mapa-quejas-mexico.jpg" 
+                         alt="Mapa de México con puntos de queja por ciudad" 
+                         class="max-w-full max-h-full object-contain">
                 </div>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div id="modal-image-container" class="relative">
-                        <img id="modal-image" src="" alt="Imagen del Avance" class="rounded-lg w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x400/cccccc/ffffff?text=Error%20al%20cargar';">
-                        
-                        <!-- Botones del carrusel interno (inicialmente ocultos) -->
-                        <button id="modal-prev-btn" class="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white/50 rounded-full p-1 shadow-md hover:bg-white/80 transition hidden">
-                             <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                        </button>
-                        <button id="modal-next-btn" class="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white/50 rounded-full p-1 shadow-md hover:bg-white/80 transition hidden">
-                            <svg class="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </button>
-                         <div id="modal-image-dots" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-2 hidden">
-                            <!-- Los puntos se generarán aquí -->
-                        </div>
+            </div>
+
+            <!-- GRÁFICO 4: Distribución por División (Pie Chart Simulation) -->
+            <div class="card p-6 bg-white rounded-lg">
+                <h3 class="text-xl font-semibold mb-4 text-text-coppel-blue text-center">Distribución de Quejas por División</h3>
+                <div class="flex flex-col items-center">
+                    <div id="chart-division" class="pie-chart-container w-48 h-48">
+                        <!-- El gráfico de pastel se genera en CSS/JS -->
                     </div>
-                    <div class="text-gray-600 space-y-4">
-                        <p id="modal-description"></p>
-                        <p id="modal-involucrados" class="text-sm text-gray-500"></p>
-                        <div id="modal-extra-content"></div>
+                    <ul id="pie-legend" class="pie-legend">
+                        <!-- Leyenda generada por JS -->
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- HALLAZGOS OPERATIVOS Y ESTRATÉGICOS -->
+    <section class="mb-10">
+        <!-- TÍTULO CAMBIADO -->
+        <h2 class="text-2xl font-bold mb-4 text-gray-800 border-l-4 border-coppel-blue pl-3">Hallazgos y Propuestas de Solución</h2>
+
+        <div class="card bg-white rounded-lg">
+            
+            <div class="hallazgos-grid">
+                <!-- Encabezados de la Tabla -->
+                <div class="hallazgo-header">HALLAZGO CLAVE</div>
+                <div class="hallazgo-header border-l border-gray-300">PROPUESTA DE SOLUCIÓN</div>
+                
+                <!-- Fila 1: MALA ACTITUD (36.4%) -->
+                <div class="hallazgo-content">
+                    <p>🔴 La <strong>mala actitud</strong> del personal es el motivo TOP 1 <strong>(36.4%)</strong>.</p>
+                </div>
+                <div class="propuesta-content">
+                    ✅ Buscar que nos compartan un curso sobre el <strong>buen trato a los clientes</strong> y poder asignarlo a los <strong>Asesores Previsionales</strong> que reporten por mala actitud.
+                </div>
+
+                <!-- Fila 2: FOCO GEOGRÁFICO MEXICALI -->
+                <div class="hallazgo-content">
+                    <p>🔴 La <strong>Región Mexicali</strong> concentra el mayor volumen de quejas <strong>(7 casos)</strong>. El volumen se reparte entre <strong>dos coordinadores</strong>: <strong>José Luis Feria Flores</strong> <strong>(4 casos)</strong> y <strong>Nadia Elena González Lopez</strong> <strong>(3 casos)</strong>.</p>
+                </div>
+                <div class="propuesta-content">
+                    ✅ Llevar un proceso de intervención por parte de la <strong>Gerencia de Atención a Módulos</strong> para las tiendas y coordinadores de la región <strong>Mexicali</strong>.
+                    <div class="tiendas-list text-xs font-medium text-gray-700">
+                        <p class="font-bold mb-1">Tiendas afectadas en Mexicali:</p>
+                        <ul class="list-disc list-inside ml-2">
+                            <li>22 - SERDAN LL</li>
+                            <li>32 - EL SAHUARO</li>
+                            <li>34 - OBREGON IV</li>
+                            <li>75 - CONSTITUCION</li>
+                            <li>97 - LAS BRISAS</li>
+                            <li>110 - JUAREZ IV</li>
+                            <li>1395 - SENDERO 2000</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Fila 3: RIGIDEZ OPERATIVA (Horarios y Cita) -->
+                <div class="hallazgo-content">
+                    <p>🔴 Los <strong>horarios limitados</strong> y <strong>condicionamiento de citas</strong> representan el <strong>27.2%</strong> del volumen, impidiendo al cliente completar <strong>trámites deseados</strong>.</p>
+                </div>
+                <div class="propuesta-content">
+                    ✅ Reforzamiento y comunicados de la <strong>Carta de Derechos de los usuarios</strong>, focalizando la atención de todos los trabajadores <strong>con y sin cita</strong>.
+                </div>
+                
+                <!-- Fila 4: SEGMENTO ADULTO MAYOR -->
+                <div class="hallazgo-content border-b-0">
+                    <p>🔴 El <strong>11.4%</strong> de las quejas provienen de la <strong>población de adultos mayores</strong>, un grupo sensible a <strong>procesos complejos</strong>.</p>
+                </div>
+                <div class="propuesta-content border-b-0">
+                    ✅ Llevar a cabo un proceso de intervención por parte de la <strong>Gerencia de Pensiones</strong> para el reforzamiento al <strong>Protocolo de Adultos Mayores (PAM)</strong> para las tiendas que incumplan con dicho protocolo.
+                    <div class="tiendas-list text-xs font-medium text-gray-700">
+                        <p class="font-bold mb-1">Tiendas con quejas de Adultos Mayores:</p>
+                        <ul class="list-disc list-inside ml-2">
+                            <li>22 - SERDAN LL</li>
+                            <li>32 - EL SAHUARO</li>
+                            <li>40 - CARRANZA III</li>
+                            <li>60 - LOPEZ MATEOS</li>
+                            <li>74 - DIAZ MIRON</li>
+                            <li>110 - JUAREZ IV</li>
+                            <li>160 - HIDALGO</li>
+                            <li>296 - TRANSPENINSULAR</li>
+                            <li>871 - PLAZA JARDINES</li>
+                            <li>975 - PLAZA CHAUE</li>
+                            <li>983 - BUENAVISTA</li>
+                        </ul>
                     </div>
                 </div>
             </div>
+
         </div>
-    </div>
+    </section>
 
-    <!-- Estructura del visor de imagen a pantalla completa -->
-    <div id="fullscreen-viewer" class="fullscreen-viewer fixed inset-0 bg-black bg-opacity-80 z-[60] flex justify-center items-center p-4 opacity-0 pointer-events-none overflow-hidden">
-        <button id="close-fullscreen-btn" class="absolute top-5 right-8 text-white text-5xl font-bold z-[70] cursor-pointer">&times;</button>
-        <img id="fullscreen-image" src="" alt="Vista a pantalla completa" class="max-w-full max-h-full rounded-lg object-contain">
-        
-        <!-- Puntero Personalizado -->
-        <div id="custom-cursor" class="absolute w-4 h-4 rounded-full border-2 border-white pointer-events-none transform -translate-x-1/2 -translate-y-1/2 hidden" style="background-color: #ef4444; z-index: 9999;"></div>
-
-        <!-- Controles del Puntero -->
-        <div class="absolute bottom-5 left-5 flex items-center space-x-4 z-[80]">
-            <!-- Paleta de Colores -->
-            <div id="color-palette" class="flex space-x-2">
-                <button data-color="#ef4444" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white hover:scale-110 transition-transform cursor-pointer"></button>
-                <button data-color="#3b82f6" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white hover:scale-110 transition-transform cursor-pointer"></button>
-                <button data-color="#eab308" class="w-8 h-8 rounded-full bg-yellow-500 border-2 border-white hover:scale-110 transition-transform cursor-pointer"></button>
-                <button data-color="#22c55e" class="w-8 h-8 rounded-full bg-green-500 border-2 border-white hover:scale-110 transition-transform cursor-pointer"></button>
-            </div>
-            <!-- Botón de ON/OFF -->
-            <button id="pointer-toggle-btn" class="flex items-center space-x-2 bg-gray-700/50 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-gray-600/70 transition-colors cursor-pointer">
-                <span id="pointer-toggle-text">OFF</span>
-                <span id="pointer-status" class="w-4 h-4 rounded-full bg-red-500 border-2 border-gray-300"></span>
-            </button>
-        </div>
-    </div>
-
+    <footer class="mt-10 pt-4 border-t border-gray-300 text-center text-sm text-gray-500">
+        <!-- CAMBIO SOLICITADO AQUÍ -->
+        <p>&copy; 2025 Afore Coppel. Reporte Generado por la Gerencia de Atención al Público.</p>
+    </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Se usarán rutas relativas. Asegúrate que las imágenes
-            // estén en la misma carpeta que este archivo HTML.
-            const imageBaseUrl = ''; 
+        // Datos del análisis generado (Frecuencias de 44 quejas)
+        const dataMotivos = [
+            { label: "Percibí una mala actitud en la atención", value: 36.4, count: 16 },
+            { label: "No pude hacer el trámite, por horarios limitados", value: 13.6, count: 6 },
+            { label: "No pude hacer el trámite, porque me condicionaron contar con cita", value: 13.6, count: 6 },
+            { label: "No pude hacer el trámite, por ausencia de personal", value: 6.8, count: 3 },
+            { label: "No pude hacer el trámite, porque no me respetaron mi cita", value: 6.8, count: 3 },
+        ];
 
-            // Datos de los avances
-            const avances = [
-                {
-                    id: 1,
-                    titulo: "1. Limitante en CRM",
-                    descripcion: "Se agregó una limitante para no poder cambiar de estatus a 'espera interna' un folio CRM sin antes colocarle un comentario. El objetivo es que se tenga una justificación del cambio de estatus y las áreas involucradas tengan noción de qué se está revisando.",
-                    involucrados: "Mesa de Ayuda, Asesores Previsionales, Ejecutivos de Atención Telefónica, Analistas UNE, Ejecutivos GAP, Analistas GAO, Analistas Pensiones, etc.",
-                    fecha: "Julio 2025"
-                },
-                {
-                    id: 2,
-                    titulo: "2. Envío de correos automáticos",
-                    descripcion: "Se implementó un envío automático de correo electrónico hacia los trabajadores cuando el folio CRM cambie de estatus a 'Espera Interna', eliminando la necesidad de que los Ejecutivos GAP y Analistas UNE lo hagan manualmente. Adicional de la primer notificación del cambio de estatus, también se implementó el envío automático de correos de seguimiento cada 5, 10, 15, 20 días y periódicamente después de esos días cada 5 días.",
-                    involucrados: "GAP, UNE",
-                    fecha: "Octubre 2025"
-                },
-                {
-                    id: 3,
-                    titulo: "3. Registro 1ra Interacción",
-                    descripcion: "Se implementó el registro automático de la fecha de la primera interacción que recibe cada folio CRM, permitiendo un seguimiento preciso del momento en que se contactó por primera vez al cliente.",
-                    fecha: "Octubre 2025"
-                },
-                {
-                    id: 4,
-                    titulo: "4. Guías con IA",
-                    descripcion: "Se ha comenzado a utilizar Inteligencia Artificial para generar guías de uso detalladas y fáciles de entender sobre nuestras herramientas internas, agilizizando la capacitación y la resolución de dudas.",
-                    fecha: "Octubre 2025"
-                },
-                {
-                    id: 5,
-                    titulo: "5. Biblioteca de Scripts",
-                    descripcion: "Se creó una Biblioteca de Scripts interna para GAP y UNE. Esta interfaz permite a los agentes buscar y copiar diálogos de respuesta con un solo clic, eficientando los tiempos y unificando el conocimiento entre áreas.",
-                    involucrados: "GAP, UNE",
-                    fecha: "Octubre 2025"
-                },
-                {
-                    id: 6,
-                    titulo: "6. Asignación Automática",
-                    descripcion: "Se implementó una asignación automática diaria que reduce el proceso de 10-15 minutos manuales a solo 30 segundos con unos pocos clics. El sistema distribuye los folios y genera el reporte al instante.",
-                    involucrados: "GAP",
-                    images: [ // Nombres de archivo para el carrusel interno (sin %20)
-                        "Avance 6.1.jpg",
-                        "Avance 6.2.jpg",
-                        "Avance 6.3.jpg"
-                    ],
-                    fecha: "Julio 2025"
-                },
-                {
-                    id: 7,
-                    titulo: "7. Adjuntar Archivos CRM",
-                    descripcion: "Se habilitó en el CRM la opción de adjuntar archivos directamente en el correo de solución de un caso. Esto elimina el paso anterior de enviar un segundo correo con la documentación, unificando la comunicación.",
-                    fecha: "Mayo 2025"
-                },
-                {
-                    id: 8,
-                    titulo: "8. Retros Interactivas",
-                    descripcion: "Se han desarrollado materiales de apoyo y retroalimentaciones interactivas para mejorar la capacitación y el rendimiento de las áreas de CAT y Mesa de Ayuda Operaciones.",
-                    fecha: "Septiembre 2025"
-                },
-                {
-                    id: 9,
-                    titulo: "9. Flyers con IA",
-                    descripcion: "Se ha utilizado la Inteligencia Artificial para el diseño y creación de flyers informativos, permitiendo comunicar novedades y procedimientos de manera más visual y rápida.",
-                    fecha: "Septiembre 2025"
-                },
-                {
-                    id: 10,
-                    titulo: "10. Dashboard de Quejas",
-                    descripcion: "Se implementó un dashboard en Looker para visualizar las quejas de la Subdirección Comercial. Muestra datos del 2025 filtrados por regiones, estados, y motivos, facilitando el análisis y la toma de decisiones.",
-                    fecha: "Septiembre 2025"
-                },
-                {
-                    id: 11,
-                    titulo: "11. Nuevo Catálogo Quejas",
-                    descripcion: "Se instaló un nuevo catálogo para tipificar quejas en el CRM. Ahora se incluyen campos adicionales como 'Problema', 'Situación' y 'Canal de Atención' para un análisis más detallado y preciso de los motivos de queja.",
-                    involucrados: "Todos los usuarios de CRM",
-                    fecha: "Octubre 2025"
-                }
-            ];
-
-            // --- LÓGICA DE ORDENAMIENTO CRONOLÓGICO ---
-            const monthMap = {
-                'Enero': 0, 'Febrero': 1, 'Marzo': 2, 'Abril': 3, 'Mayo': 4, 'Junio': 5,
-                'Julio': 6, 'Agosto': 7, 'Septiembre': 8, 'Octubre': 9, 'Noviembre': 10, 'Diciembre': 11
-            };
-
-            avances.forEach(avance => {
-                const [monthName, year] = avance.fecha.split(' ');
-                avance.dateObject = new Date(year, monthMap[monthName]);
-            });
-
-            avances.sort((a, b) => a.dateObject - b.dateObject);
+        // DATOS ACTUALIZADOS: Top 5 servicios con mayor volumen de quejas
+        const dataServicio = [
+            { servicio: "Alta de Expediente y Biometrico", malaActitud: 4, condicionCita: 1 },
+            { servicio: "Retiros Totales IMSS", malaActitud: 3, condicionCita: 1 },
+            { servicio: "Modificación de Datos", malaActitud: 3, condicionCita: 1 },
+            { servicio: "Retiro por Desempleo", malaActitud: 2, condicionCita: 0 },
+            { servicio: "Actualización de datos", malaActitud: 0, condicionCita: 2 },
+        ];
+        
+        // DATOS DE DIVISIÓN REORDENADOS: 1, 2, 3
+        const dataDivision = [
+            { division: "División 1", count: 19, percentage: 43.2, color: '#1f3a93' }, // Azul Corporativo (43.2%)
+            { division: "División 2", count: 6, percentage: 13.6, color: '#3b82f6' }, // Azul Intermedio (13.6%)
+            { division: "División 3", count: 19, percentage: 43.2, color: '#63b3ed' }, // Azul Claro (43.2%)
+        ];
 
 
-            const carouselContainer = document.getElementById('carousel-container');
-            const scrollLeftBtn = document.getElementById('scroll-left-btn');
-            const scrollRightBtn = document.getElementById('scroll-right-btn');
-            
-            const modal = document.getElementById('modal');
-            const modalContent = document.getElementById('modal-content');
-            const modalTitle = document.getElementById('modal-title');
-            const modalImage = document.getElementById('modal-image');
-            const modalDescription = document.getElementById('modal-description');
-            const modalInvolucrados = document.getElementById('modal-involucrados');
-            const modalExtraContent = document.getElementById('modal-extra-content');
-            const closeModalBtn = document.getElementById('close-modal-btn');
-            const modalPrevBtn = document.getElementById('modal-prev-btn');
-            const modalNextBtn = document.getElementById('modal-next-btn');
-            const modalImageDots = document.getElementById('modal-image-dots');
+        // Función para renderizar el gráfico de barras (Motivos)
+        function renderMotivosChart() {
+            const container = document.getElementById('chart-motivos');
+            dataMotivos.forEach(item => {
+                const barContainer = document.createElement('div');
+                barContainer.className = 'bar-container';
 
-            const fullscreenViewer = document.getElementById('fullscreen-viewer');
-            const fullscreenImage = document.getElementById('fullscreen-image');
-            const closeFullscreenBtn = document.getElementById('close-fullscreen-btn');
-            const customCursor = document.getElementById('custom-cursor');
-            const colorPalette = document.getElementById('color-palette');
-            const pointerToggleBtn = document.getElementById('pointer-toggle-btn');
-            const pointerToggleText = document.getElementById('pointer-toggle-text');
-            const pointerStatus = document.getElementById('pointer-status');
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = item.label; // El texto puede ocupar varias líneas
 
-            let currentImageIndex = 0;
-            let currentImageSet = [];
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'bar-wrapper flex-grow';
 
-            avances.forEach((avance, index) => {
-                const card = document.createElement('div');
-                card.className = 'group flex-shrink-0 w-64 h-80 bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-2xl';
-                card.dataset.index = index; // El índice ahora corresponde al array ordenado
+                const bar = document.createElement('div');
+                bar.className = 'bar transition-all duration-700 ease-out';
+                // Calculamos el ancho relativo al 40% (valor máximo del TOP)
+                const widthPercent = (item.value / 40) * 100;
+                bar.style.width = `${widthPercent}%`;
                 
-                // Usamos avance.id para mantener la referencia a la imagen original correcta
-                const imageUrl = `${imageBaseUrl}Avance ${avance.id}.jpg`; 
-                card.innerHTML = `
-                    <div class="h-1/2 overflow-hidden">
-                        <img src="${imageUrl}" alt="${avance.titulo}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" onerror="this.onerror=null;this.src='https://placehold.co/400x300/cccccc/ffffff?text=Error';">
-                    </div>
-                    <div class="p-5 h-1/2 flex flex-col justify-center items-center text-center">
-                        <h3 class="text-lg font-bold text-gray-800 group-hover:text-[#004e91] transition-colors">${avance.titulo}</h3>
-                        <p class="text-sm text-gray-500 mt-2">${avance.fecha}</p>
-                    </div>
+                // Texto de porcentaje y conteo en blanco, dentro de la barra
+                const valueText = document.createElement('span');
+                valueText.className = 'bar-text';
+                valueText.textContent = `${item.value}% (${item.count})`;
+                
+                bar.appendChild(valueText);
+                barWrapper.appendChild(bar);
+
+                barContainer.appendChild(label);
+                barContainer.appendChild(barWrapper);
+                container.appendChild(barContainer);
+            });
+        }
+
+        // Función para renderizar la tabla de Tipificación por Servicio
+        function renderServicioTable() {
+            const tbody = document.getElementById('table-servicio');
+            dataServicio.forEach(item => {
+                const row = tbody.insertRow();
+                row.className = 'hover:bg-gray-50';
+
+                // Servicio
+                let cell1 = row.insertCell();
+                cell1.className = 'px-3 py-2 whitespace-nowrap font-medium text-gray-900';
+                cell1.textContent = item.servicio;
+
+                // Mala Actitud
+                let cell2 = row.insertCell();
+                cell2.className = 'px-3 py-2 whitespace-nowrap text-center text-red-600 font-bold';
+                cell2.textContent = item.malaActitud;
+
+                // Condicionamiento Cita
+                let cell3 = row.insertCell();
+                cell3.className = 'px-3 py-2 whitespace-nowrap text-center text-yellow-600 font-bold';
+                cell3.textContent = item.condicionCita;
+            });
+        }
+
+        // Función para renderizar el gráfico de pastel (Divisiones)
+        function renderDivisionChart() {
+            const pieContainer = document.getElementById('chart-division');
+            const legendContainer = document.getElementById('pie-legend');
+            
+            let currentAngle = 0;
+            let conicGradient = 'conic-gradient(';
+
+            dataDivision.forEach((item, index) => {
+                // Calcular el ángulo final
+                const angle = (item.percentage / 100) * 360;
+                const nextAngle = currentAngle + angle;
+                
+                // Mapear el color del JS a la definición de color en CSS
+                const colorCode = item.color;
+
+                conicGradient += `${colorCode} ${currentAngle}deg ${nextAngle}deg, `;
+                currentAngle = nextAngle;
+
+                // Construir Leyenda
+                const legendItem = document.createElement('li');
+                legendItem.className = 'legend-item';
+                legendItem.innerHTML = `
+                    <div class="legend-color" style="background-color: ${colorCode};"></div>
+                    <span>${item.division}: <strong>${item.percentage}%</strong> (${item.count} casos)</span>
                 `;
-                carouselContainer.appendChild(card);
+                legendContainer.appendChild(legendItem);
             });
+
+            // Limpiar la última coma y cerrar la función
+            conicGradient = conicGradient.slice(0, -2) + ')';
             
-            // --- LÓGICA DE CARRUSEL INFINITO ---
-            const setupInfiniteCarousel = () => {
-                const originalCards = Array.from(carouselContainer.children);
-                if (originalCards.length === 0) return;
+            // Aplicar el gradiente al contenedor del pastel
+            pieContainer.style.background = conicGradient;
+        }
 
-                originalCards.forEach(card => carouselContainer.appendChild(card.cloneNode(true)));
-                originalCards.slice().reverse().forEach(card => carouselContainer.prepend(card.cloneNode(true)));
-
-                const cardWidth = originalCards[0].offsetWidth + 24; 
-                const oneBlockWidth = cardWidth * originalCards.length;
-
-                carouselContainer.scrollLeft = oneBlockWidth;
-
-                let isTeleporting = false;
-                carouselContainer.addEventListener('scroll', () => {
-                    if (isTeleporting) return;
-                    if (carouselContainer.scrollLeft >= oneBlockWidth * 2) {
-                        isTeleporting = true;
-                        carouselContainer.style.scrollBehavior = 'auto';
-                        carouselContainer.scrollLeft -= oneBlockWidth;
-                    } 
-                    else if (carouselContainer.scrollLeft <= 0) {
-                        isTeleporting = true;
-                        carouselContainer.style.scrollBehavior = 'auto';
-                        carouselContainer.scrollLeft += oneBlockWidth;
-                    }
-                    if (isTeleporting) {
-                        setTimeout(() => {
-                            carouselContainer.style.scrollBehavior = 'smooth';
-                            isTeleporting = false;
-                        }, 50);
-                    }
-                });
-            };
-
-            setTimeout(setupInfiniteCarousel, 100); 
-
-            scrollLeftBtn.addEventListener('click', () => { carouselContainer.scrollLeft -= 280; });
-            scrollRightBtn.addEventListener('click', () => { carouselContainer.scrollLeft += 280; });
-
-            const updateModalImage = () => {
-                if (currentImageSet.length === 0) return;
-                
-                modalImage.style.opacity = 0;
-                setTimeout(() => {
-                    modalImage.src = currentImageSet[currentImageIndex];
-                    modalImage.style.opacity = 1;
-                }, 150);
-
-                modalImageDots.innerHTML = '';
-                currentImageSet.forEach((_, index) => {
-                    const dot = document.createElement('span');
-                    dot.className = `block w-2 h-2 rounded-full cursor-pointer transition-colors ${index === currentImageIndex ? 'bg-white' : 'bg-white/50 hover:bg-white/75'}`;
-                    dot.onclick = () => {
-                        currentImageIndex = index;
-                        updateModalImage();
-                    };
-                    modalImageDots.appendChild(dot);
-                });
-            };
-            
-            modalPrevBtn.addEventListener('click', () => {
-                currentImageIndex = (currentImageIndex - 1 + currentImageSet.length) % currentImageSet.length;
-                updateModalImage();
-            });
-
-            modalNextBtn.addEventListener('click', () => {
-                currentImageIndex = (currentImageIndex + 1) % currentImageSet.length;
-                updateModalImage();
-            });
-
-            const openModal = (index) => {
-                const avance = avances[index]; // Obtenemos el avance del array ya ordenado
-                modalTitle.textContent = avance.titulo;
-                modalDescription.textContent = avance.descripcion;
-                
-                if (avance.involucrados) {
-                    modalInvolucrados.style.display = 'block';
-                    let label = "Involucrados";
-                    if (avance.id == 1) { // Usamos el ID original para la lógica específica
-                        label = "Áreas involucradas en la atención";
-                    }
-                    modalInvolucrados.innerHTML = `<strong>${label}:</strong> ${avance.involucrados}`;
-                } else {
-                    modalInvolucrados.style.display = 'none';
-                    modalInvolucrados.innerHTML = '';
-                }
-
-                modalExtraContent.innerHTML = '';
-                 if (avance.id == 4) { 
-                    modalExtraContent.innerHTML = `<a href="https://aforecoppel-ops.github.io/utileria/" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 bg-[#004e91] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#003a6e] transition-colors">Guía de Herramienta</a>`;
-                } else if (avance.id == 5) {
-                    modalExtraContent.innerHTML = `<a href="https://gap-aforecoppel.github.io/Biblioteca-Scripts/" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 bg-[#004e91] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#003a6e] transition-colors">URL del sitio</a>`;
-                } else if (avance.id == 8) { 
-                     modalExtraContent.innerHTML = `
-                        <div class="flex flex-wrap gap-2 mt-2">
-                            <a href="https://gap-aforecoppel.github.io/ConsultaSQL/" target="_blank" rel="noopener noreferrer" class="inline-block bg-[#004e91] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#003a6e] transition-colors">
-                                Retro MSO
-                            </a>
-                            <a href="https://aforecoppel-ops.github.io/Seguimiento-retiros-parciales/" target="_blank" rel="noopener noreferrer" class="inline-block bg-[#004e91] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#003a6e] transition-colors">
-                                Retro CAT
-                            </a>
-                        </div>
-                    `;
-                } else if (avance.id == 9) { 
-                    modalExtraContent.innerHTML = `<a href="https://aforecoppel-ops.github.io/Identificaciones-Validas/" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 bg-[#004e91] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#003a6e] transition-colors">Flyer Interactivo</a>`;
-                } else if (avance.id == 10) { 
-                    modalExtraContent.innerHTML = `<a href="https://lookerstudio.google.com/reporting/e88486b7-7aeb-404f-9e27-57a97492f11a/page/1I5XF" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 bg-[#004e91] text-white font-bold py-2 px-4 rounded-lg hover:bg-[#003a6e] transition-colors">Looker Quejas</a>`;
-                }
-
-
-                if (avance.images && avance.images.length > 0) {
-                    currentImageSet = avance.images.map(imgName => imageBaseUrl + imgName); 
-                    currentImageIndex = 0;
-                    updateModalImage();
-                    modalPrevBtn.classList.remove('hidden');
-                    modalNextBtn.classList.remove('hidden');
-                    modalImageDots.classList.remove('hidden');
-                } else {
-                    currentImageSet = [];
-                    modalPrevBtn.classList.add('hidden');
-                    modalNextBtn.classList.add('hidden');
-                    modalImageDots.classList.add('hidden');
-                    const imageUrl = `${imageBaseUrl}Avance ${avance.id}.jpg`;
-                    modalImage.src = imageUrl;
-                    modalImage.alt = `${avance.titulo}`;
-                }
-
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                modalContent.classList.remove('scale-95');
-            };
-
-            const closeModal = () => {
-                modal.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => modal.classList.add('pointer-events-none'), 300);
-            };
-
-            carouselContainer.addEventListener('click', (e) => {
-                const card = e.target.closest('.group');
-                if (card && card.dataset.index) {
-                    openModal(card.dataset.index);
-                }
-            });
-
-            closeModalBtn.addEventListener('click', closeModal);
-            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-
-            // --- LÓGICA PARA ZOOM, ARRASTRE Y PUNTERO PERSONALIZADO ---
-            let scale = 1, isDragging = false, startX, startY, x = 0, y = 0;
-            let paintModeActive = false;
-            let currentPointerColor = '#ef4444';
-
-            const openFullscreen = (src) => {
-                fullscreenImage.src = src;
-                scale = 1; x = 0; y = 0;
-                fullscreenImage.style.transform = `translate(0px, 0px) scale(1)`;
-                fullscreenViewer.classList.remove('opacity-0', 'pointer-events-none');
-                customCursor.classList.remove('hidden');
-                window.addEventListener('mousemove', handleFullscreenMouseMove);
-                window.addEventListener('mouseup', handleFullscreenMouseUp);
-            };
-
-            const closeFullscreen = () => {
-                fullscreenViewer.classList.add('opacity-0');
-                setTimeout(() => {
-                    fullscreenViewer.classList.add('pointer-events-none');
-                    customCursor.classList.add('hidden');
-                    paintModeActive = false;
-                    pointerToggleText.textContent = 'OFF';
-                    pointerStatus.classList.remove('bg-green-500');
-                    pointerStatus.classList.add('bg-red-500');
-                    window.removeEventListener('mousemove', handleFullscreenMouseMove);
-                    window.removeEventListener('mouseup', handleFullscreenMouseUp);
-                }, 300);
-            };
-            
-            modalImage.addEventListener('click', () => openFullscreen(modalImage.src));
-            closeFullscreenBtn.addEventListener('click', closeFullscreen);
-            fullscreenViewer.addEventListener('click', (e) => { 
-                if (e.target === fullscreenViewer && !isDragging) closeFullscreen(); 
-            });
-
-            fullscreenViewer.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                scale = Math.max(0.5, Math.min(scale + delta, 5));
-                fullscreenImage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
-            });
-            
-            fullscreenImage.addEventListener('mousedown', (e) => {
-                if (scale > 1 && e.button === 0) {
-                    e.preventDefault();
-                    isDragging = true;
-                    startX = e.clientX - x;
-                    startY = e.clientY - y;
-                    fullscreenImage.classList.add('dragging');
-                }
-            });
-
-            function handleFullscreenMouseMove(e) {
-                customCursor.style.left = `${e.clientX}px`;
-                customCursor.style.top = `${e.clientY}px`;
-
-                if (paintModeActive && !isDragging) {
-                    const trailDot = document.createElement('div');
-                    trailDot.className = 'absolute rounded-full pointer-events-none';
-                    trailDot.style.backgroundColor = currentPointerColor;
-                    trailDot.style.left = `${e.clientX}px`;
-                    trailDot.style.top = `${e.clientY}px`;
-                    trailDot.style.width = '12px';
-                    trailDot.style.height = '12px';
-                    trailDot.style.transform = 'translate(-50%, -50%)';
-                    trailDot.style.zIndex = '9998';
-                    trailDot.style.transition = 'transform 0.5s ease-out, opacity 0.5s ease-out';
-                    
-                    fullscreenViewer.appendChild(trailDot);
-
-                    requestAnimationFrame(() => {
-                        trailDot.style.transform = 'translate(-50%, -50%) scale(0)';
-                        trailDot.style.opacity = '0';
-                    });
-
-                    setTimeout(() => {
-                        trailDot.remove();
-                    }, 500);
-                }
-                
-                if (isDragging) {
-                    x = e.clientX - startX;
-                    y = e.clientY - startY;
-                    fullscreenImage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
-                }
-            }
-
-            function handleFullscreenMouseUp() {
-                if(isDragging) {
-                    isDragging = false;
-                    fullscreenImage.classList.remove('dragging');
-                }
-            }
-
-            colorPalette.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const button = e.target.closest('button');
-                if (button && button.dataset.color) {
-                    currentPointerColor = button.dataset.color;
-                    customCursor.style.backgroundColor = currentPointerColor;
-                }
-            });
-
-            pointerToggleBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                paintModeActive = !paintModeActive;
-                if (paintModeActive) {
-                    pointerToggleText.textContent = 'ON';
-                    pointerStatus.classList.remove('bg-red-500');
-                    pointerStatus.classList.add('bg-green-500');
-                } else {
-                    pointerToggleText.textContent = 'OFF';
-                    pointerStatus.classList.remove('bg-green-500');
-                    pointerStatus.classList.add('bg-red-500');
-                }
-            });
-        });
+        // Ejecutar las funciones al cargar el DOM
+        window.onload = function() {
+            renderMotivosChart();
+            renderServicioTable();
+            renderDivisionChart();
+        };
     </script>
 </body>
 </html>
